@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rasoi — Regional Indian Veg Recipes</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-display {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .veg-mark {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #15803d;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: #ffffff;
+    }
+    .veg-mark::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: #15803d;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-amber-50 via-orange-50/40 to-rose-50/50 text-stone-800 min-h-screen">
+  <!-- Colorful Spice-Inspired Hero Banner -->
+  <header class="bg-gradient-to-r from-orange-600 via-amber-500 to-rose-500 text-white shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-semibold tracking-wide uppercase mb-3">
+            <span class="veg-mark" aria-hidden="true"></span>
+            <span>100% Pure Vegetarian · All-India Collection</span>
+          </div>
+          <h1 class="font-display text-3xl sm:text-5xl font-bold tracking-tight">
+            Rasoi: Flavors of India
+          </h1>
+          <p class="mt-2 text-amber-50 text-sm sm:text-base max-w-2xl">
+            Explore <span id="total-count-label" class="font-semibold text-white">54</span> authentic vegetarian recipes spanning North, South, West, East, Central, and Northeast India.
+          </p>
+        </div>
+        <button
+          id="favorites-toggle-btn"
+          type="button"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/30 text-sm font-semibold transition cursor-pointer"
+        >
+          <span id="fav-heart-icon">🤍</span>
+          <span>Saved (<span id="fav-count">0</span>)</span>
+        </button>
+      </div>
+
+      <!-- Search + Category Controls -->
+      <div class="mt-6 grid gap-3 sm:grid-cols-12">
+        <div class="sm:col-span-7 relative">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none">🔍</span>
+          <input
+            id="search-input"
+            type="search"
+            placeholder="Search dish, state, or ingredient (e.g., Paneer, Kerala, Coconut)..."
+            class="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-stone-800 placeholder-stone-400 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+          />
+        </div>
+        <div class="sm:col-span-5 flex gap-2">
+          <select
+            id="category-select"
+            aria-label="Filter by meal category"
+            class="w-full px-3.5 py-3 rounded-xl bg-white text-stone-800 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+          >
+            <option value="All">All Categories</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Main Course">Main Course</option>
+            <option value="Street Food & Snacks">Street Food & Snacks</option>
+            <option value="Sweets & Drinks">Sweets & Drinks</option>
+          </select>
+          <button
+            id="random-recipe-btn"
+            type="button"
+            class="px-4 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold shadow-sm shrink-0 transition cursor-pointer"
+            title="Pick a random dish"
+          >
+            🎲 Surprise Me
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Region Filter Pills -->
+  <nav aria-label="Filter by Indian region" class="sticky top-0 z-20 bg-white/85 backdrop-blur-md border-b border-amber-200/70 shadow-sm">
+    <div id="region-tabs" class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar"></div>
+  </nav>
+
+  <!-- Active Filter Status & Grid -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+      <p id="results-summary" class="text-sm font-medium text-stone-600"></p>
+      <button
+        id="reset-filters-btn"
+        type="button"
+        class="hidden text-xs font-semibold text-orange-700 hover:text-orange-900 underline cursor-pointer"
+      >
+        Reset all filters
+      </button>
+    </div>
+
+    <div id="recipe-grid" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+
+    <div id="empty-state" class="hidden text-center py-16 px-4 bg-white rounded-3xl border border-amber-200/70 shadow-sm">
+      <div class="text-4xl mb-3">🍲</div>
+      <h2 class="text-lg font-bold text-stone-900">No matching recipes found</h2>
+      <p class="text-sm text-stone-500 mt-1">Try another search term, region, or category.</p>
+      <button
+        id="empty-reset-btn"
+        type="button"
+        class="mt-4 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition cursor-pointer"
+      >
+        Show All Recipes
+      </button>
+    </div>
+  </main>
+
+  <!-- Recipe Detail Modal -->
+  <div
+    id="recipe-modal"
+    class="fixed inset-0 z-40 hidden items-center justify-center p-3 sm:p-6 bg-stone-950/60 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+  >
+    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+      <div id="modal-banner" class="px-6 py-5 text-white relative">
+        <button
+          id="close-modal-btn"
+          type="button"
+          aria-label="Close recipe"
+          class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/20 hover:bg-black/35 text-white flex items-center justify-center text-lg font-bold transition cursor-pointer"
+        >
+          ✕
+        </button>
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/90 mb-1.5">
+          <span class="veg-mark" aria-hidden="true"></span>
+          <span id="modal-region-state"></span>
+          <span>·</span>
+          <span id="modal-category"></span>
+        </div>
+        <div class="flex items-center gap-3 pr-10">
+          <span id="modal-emoji" class="text-4xl" aria-hidden="true"></span>
+          <div>
+            <h2 id="modal-title" class="font-display text-2xl sm:text-3xl font-bold leading-tight"></h2>
+            <p id="modal-meta" class="text-xs sm:text-sm text-white/90 mt-1"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6">
+        <p id="modal-desc" class="text-sm text-stone-600 leading-relaxed"></p>
+
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-orange-700">
+              Ingredients (Tap to check off)
+            </h3>
+            <button
+              id="copy-ingredients-btn"
+              type="button"
+              class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 transition cursor-pointer"
+            >
+              📋 Copy list
+            </button>
+          </div>
+          <ul id="modal-ingredients" class="grid sm:grid-cols-2 gap-2"></ul>
+        </div>
+
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-orange-700 mb-2.5">
+            Cooking Steps
+          </h3>
+          <ol id="modal-steps" class="space-y-3"></ol>
+        </div>
+      </div>
+
+      <div class="px-6 py-3.5 bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-3">
+        <button
+          id="modal-fav-btn"
+          type="button"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-100 text-sm font-semibold text-stone-800 transition cursor-pointer"
+        ></button>
+        <button
+          id="modal-done-btn"
+          type="button"
+          class="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition cursor-pointer"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div
+    id="toast"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl bg-stone-900 text-white text-xs sm:text-sm font-medium shadow-lg"
+  ></div>
+
+  <script>
+    const REGION_STYLES = {
+      "All": {
+        pill: "bg-stone-900 text-white",
+        badge: "bg-stone-100 text-stone-800",
+        banner: "from-orange-600 to-amber-500",
+        accent: "border-t-stone-500"
+      },
+      "North India": {
+        pill: "bg-amber-500 text-white",
+        badge: "bg-amber-100 text-amber-900",
+        banner: "from-amber-600 via-orange-500 to-yellow-500",
+        accent: "border-t-amber-500"
+      },
+      "South India": {
+        pill: "bg-emerald-600 text-white",
+        badge: "bg-emerald-100 text-emerald-900",
+        banner: "from-emerald-700 via-teal-600 to-green-500",
+        accent: "border-t-emerald-500"
+      },
+      "West India": {
+        pill: "bg-rose-600 text-white",
+        badge: "bg-rose-100 text-rose-900",
+        banner: "from-rose-600 via-pink-600 to-orange-500",
+        accent: "border-t-rose-500"
+      },
+      "East India": {
+        pill: "bg-cyan-700 text-white",
+        badge: "bg-cyan-100 text-cyan-900",
+        banner: "from-cyan-700 via-teal-600 to-sky-500",
+        accent: "border-t-cyan-600"
+      },
+      "Central India": {
+        pill: "bg-orange-600 text-white",
+        badge: "bg-orange-100 text-orange-900",
+        banner: "from-orange-700 via-red-500 to-amber-500",
+        accent: "border-t-orange-600"
+      },
+      "Northeast India": {
+        pill: "bg-violet-600 text-white",
+        badge: "bg-violet-100 text-violet-900",
+        banner: "from-violet-700 via-purple-600 to-fuchsia-500",
+        accent: "border-t-violet-600"
+      }
+    };
+
+    const recipes = [
+      // NORTH INDIA (12)
+      {
+        id: 1,
+        title: "Paneer Butter Masala",
+        region: "North India",
+        state: "Delhi / Punjab",
+        category: "Main Course",
+        emoji: "🧈",
+        time: "35 mins",
+        servings: "4",
+        desc: "Soft paneer cubes simmered in a velvety spiced tomato-cashew gravy finished with butter and kasuri methi.",
+        ingredients: ["250g paneer cubes", "4 ripe tomatoes", "15 cashews soaked", "2 tbsp butter", "1 tbsp ginger-garlic paste", "1 tsp Kashmiri red chili powder", "1 tsp garam masala", "1 tsp kasuri methi", "2 tbsp fresh cream"],
+        steps: ["Simmer tomatoes and soaked cashews with a splash of water for 10 minutes, then blend smooth.", "Melt butter in a pan, sauté ginger-garlic paste for 1 minute, and stir in chili powder.", "Pour in the tomato-cashew puree and cook 8 minutes until thick and glossy.", "Add paneer cubes, garam masala, crushed kasuri methi, and cream; simmer 3 minutes and serve with naan."]
+      },
+      {
+        id: 2,
+        title: "Chole Bhature",
+        region: "North India",
+        state: "Punjab",
+        category: "Main Course",
+        emoji: "🫓",
+        time: "50 mins",
+        servings: "4",
+        desc: "Tangy, dark-spiced chickpea curry paired with puffy golden fried bhatura bread.",
+        ingredients: ["1.5 cups dried chickpeas (soaked overnight)", "1 tea bag (for color)", "2 onions finely chopped", "3 tomatoes pureed", "2 tbsp chole masala", "1 tsp amchur (dry mango powder)", "2 cups maida (all-purpose flour)", "1/2 cup yogurt", "Oil for frying"],
+        steps: ["Pressure cook soaked chickpeas with salt and a tea bag until tender; discard tea bag.", "Knead flour, yogurt, pinch of baking soda, and warm water into a soft dough; rest 30 minutes.", "Sauté onions until deep brown, add tomato puree, chole masala, and amchur, then simmer with chickpeas.", "Roll dough into ovals and deep-fry in hot oil until puffed and golden; serve hot with pickled onions."]
+      },
+      {
+        id: 3,
+        title: "Dal Makhani",
+        region: "North India",
+        state: "Punjab",
+        category: "Main Course",
+        emoji: "🍲",
+        time: "60 mins",
+        servings: "4",
+        desc: "Slow-simmered whole black urad lentils and kidney beans enriched with butter, tomato puree, and cream.",
+        ingredients: ["1 cup whole black urad dal", "1/4 cup rajma (kidney beans)", "3 tbsp butter", "1 cup tomato puree", "1 tbsp ginger-garlic paste", "1 tsp Kashmiri chili powder", "1/2 tsp garam masala", "3 tbsp fresh cream"],
+        steps: ["Soak urad dal and rajma overnight, then pressure cook until creamy and soft.", "Melt butter in a heavy pot, sauté ginger-garlic paste, chili powder, and tomato puree for 8 minutes.", "Add cooked lentils with simmering water and mash lightly; simmer on low heat for 25 minutes.", "Finish with garam masala, butter, and cream."]
+      },
+      {
+        id: 4,
+        title: "Aloo Paratha",
+        region: "North India",
+        state: "Punjab / Haryana",
+        category: "Breakfast",
+        emoji: "🥞",
+        time: "30 mins",
+        servings: "4",
+        desc: "Whole-wheat flatbread stuffed with spiced mashed potatoes, roasted with ghee until crisp.",
+        ingredients: ["2 cups whole wheat flour", "3 boiled potatoes mashed", "1 green chili finely chopped", "1/2 tsp ajwain (carom seeds)", "1 tsp amchur", "2 tbsp chopped coriander", "Ghee for roasting", "Salt to taste"],
+        steps: ["Knead whole wheat flour with water and salt into a pliable dough.", "Mix mashed potatoes with chili, ajwain, amchur, coriander, and salt.", "Stuff a ball of filling inside rolled dough, seal, and roll gently into a flatbread.", "Cook on a hot tawa with ghee on both sides until golden brown; serve with curd and pickle."]
+      },
+      {
+        id: 5,
+        title: "Palak Paneer",
+        region: "North India",
+        state: "North India",
+        category: "Main Course",
+        emoji: "🥬",
+        time: "30 mins",
+        servings: "3",
+        desc: "Vibrant spinach puree tempered with garlic and cumin, folded with tender cubes of paneer.",
+        ingredients: ["300g fresh spinach (palak)", "200g paneer cubes", "1 onion chopped", "1 tomato chopped", "4 cloves garlic minced", "1 tsp cumin seeds", "1/2 tsp garam masala", "1 tbsp ghee or oil"],
+        steps: ["Blanch spinach in boiling water for 2 minutes, shock in ice water, and blend smooth.", "Sauté cumin seeds and garlic in ghee, then cook onions and tomatoes until soft.", "Stir in the spinach puree and garam masala; simmer 4 minutes.", "Gently fold in paneer cubes and cook 2 more minutes."]
+      },
+      {
+        id: 6,
+        title: "Rajma Chawal",
+        region: "North India",
+        state: "Jammu / Himachal",
+        category: "Main Course",
+        emoji: "🍛",
+        time: "45 mins",
+        servings: "4",
+        desc: "Comforting red kidney bean curry simmered in onion-tomato masala, served over steamed basmati rice.",
+        ingredients: ["1 cup red kidney beans soaked", "2 onions finely chopped", "3 tomatoes pureed", "1 tbsp ginger-garlic paste", "1 tsp cumin seeds", "1.5 tsp coriander powder", "1 tsp garam masala", "2 cups cooked basmati rice"],
+        steps: ["Pressure cook soaked rajma with salt and a bay leaf until soft.", "Temper cumin in oil, sauté onions golden, then add ginger-garlic paste and spices.", "Cook tomato puree until oil separates, then add rajma with its broth.", "Simmer 15 minutes until thick and serve hot over basmati rice."]
+      },
+      {
+        id: 7,
+        title: "Baingan Bharta",
+        region: "North India",
+        state: "Punjab / UP",
+        category: "Main Course",
+        emoji: "🍆",
+        time: "35 mins",
+        servings: "3",
+        desc: "Smoky fire-roasted eggplant mashed and sautéed with onions, tomatoes, green peas, and ginger.",
+        ingredients: ["1 large eggplant (brinjal)", "2 onions chopped", "2 tomatoes chopped", "1/2 cup green peas", "1 tbsp ginger-garlic chopped", "1 tsp red chili powder", "2 tbsp mustard oil", "Fresh coriander"],
+        steps: ["Rub eggplant with oil and roast directly over flame until charred and soft inside; peel and mash.", "Heat mustard oil, sauté ginger, garlic, and onions until translucent.", "Add tomatoes, green peas, turmeric, chili powder, and salt; cook until soft.", "Stir in mashed eggplant, cook 6 minutes, and garnish with coriander."]
+      },
+      {
+        id: 8,
+        title: "Sarson Ka Saag",
+        region: "North India",
+        state: "Punjab",
+        category: "Main Course",
+        emoji: "🌿",
+        time: "55 mins",
+        servings: "4",
+        desc: "Earthy mustard greens and spinach slow-cooked with makki atta and finished with a garlic-ghee tadka.",
+        ingredients: ["400g mustard greens (sarson)", "150g spinach", "100g bathua (optional)", "2 tbsp makki atta (cornmeal)", "1 inch ginger", "6 cloves garlic", "2 green chilies", "2 tbsp white butter or ghee"],
+        steps: ["Pressure cook chopped greens with ginger, chilies, and salt until tender.", "Blend coarsely and stir in makki atta while simmering for 15 minutes.", "Prepare a sizzling tadka of ghee and chopped garlic.", "Pour tadka over saag and serve with makki ki roti and jaggery."]
+      },
+      {
+        id: 9,
+        title: "Kashmiri Dum Aloo",
+        region: "North India",
+        state: "Jammu & Kashmir",
+        category: "Main Course",
+        emoji: "🥔",
+        time: "40 mins",
+        servings: "4",
+        desc: "Crisp baby potatoes slow-cooked in a fragrant yogurt gravy spiced with fennel and dry ginger.",
+        ingredients: ["12 baby potatoes boiled & peeled", "1 cup whisked yogurt", "2 tsp Kashmiri red chili powder", "1 tsp fennel powder (saunf)", "1/2 tsp dry ginger powder (sonth)", "2 black cardamoms", "3 tbsp mustard oil"],
+        steps: ["Prick boiled potatoes with a fork and fry in mustard oil until golden.", "Whisk yogurt with chili powder, fennel, dry ginger, and salt.", "Temper whole spices in oil, lower heat, and slowly stir in spiced yogurt.", "Add fried potatoes, cover, and simmer on low heat for 15 minutes."]
+      },
+      {
+        id: 10,
+        title: "Aloo Tikki Chaat",
+        region: "North India",
+        state: "Delhi / Uttar Pradesh",
+        category: "Street Food & Snacks",
+        emoji: "🥙",
+        time: "30 mins",
+        servings: "3",
+        desc: "Crispy spiced potato patties topped with cool yogurt, tamarind chutney, mint chutney, and sev.",
+        ingredients: ["4 boiled potatoes mashed", "2 tbsp cornflour or poha powder", "1/2 cup spiced green peas", "1/2 cup chilled sweet yogurt", "3 tbsp tamarind chutney", "3 tbsp green mint chutney", "1/2 cup crispy sev", "Chaat masala & pomegranate"],
+        steps: ["Mix mashed potatoes with cornflour and salt; shape into patties stuffed with spiced peas.", "Shallow-fry on a tawa until crisp and golden on both sides.", "Place hot tikkis on a plate and spoon over yogurt, tamarind, and mint chutneys.", "Sprinkle chaat masala, sev, and pomegranate seeds immediately."]
+      },
+      {
+        id: 11,
+        title: "Bedmi Poori & Aloo Sabzi",
+        region: "North India",
+        state: "Uttar Pradesh",
+        category: "Breakfast",
+        emoji: "🥣",
+        time: "40 mins",
+        servings: "4",
+        desc: "Crisp spiced lentil-stuffed pooris paired with tangy no-onion-no-garlic potato curry.",
+        ingredients: ["2 cups wheat flour", "1/2 cup urad dal soaked & ground", "1 tsp fennel & coriander crushed", "4 boiled potatoes cubed", "2 tomatoes chopped", "1/2 tsp hing (asafoetida)", "1 tsp amchur", "Oil for frying"],
+        steps: ["Knead wheat flour with ground urad dal, fennel, salt, and water into a firm dough.", "For sabzi, temper cumin and hing in oil, cook tomatoes and spices, then simmer mashed potatoes.", "Roll small discs of dough and deep-fry until puffed and crisp.", "Serve hot bedmi pooris with the tangy aloo sabzi."]
+      },
+      {
+        id: 12,
+        title: "Spiced Masala Chai",
+        region: "North India",
+        state: "Pan-India",
+        category: "Sweets & Drinks",
+        emoji: "☕",
+        time: "10 mins",
+        servings: "2",
+        desc: "Aromatic milk tea brewed with crushed cardamom, fresh ginger, cloves, and black tea leaves.",
+        ingredients: ["1 cup water", "1 cup whole milk", "2 tsp Assam tea leaves", "3 green cardamom pods", "1/2 inch fresh ginger crushed", "2 cloves", "2 tsp sugar"],
+        steps: ["Boil water with crushed ginger, cardamom, and cloves for 2 minutes.", "Add black tea leaves and simmer until deep amber.", "Pour in milk and sugar, bring to a rolling boil twice.", "Strain into cups and serve piping hot."]
+      },
+
+      // SOUTH INDIA (12)
+      {
+        id: 13,
+        title: "Crispy Masala Dosa",
+        region: "South India",
+        state: "Karnataka / Tamil Nadu",
+        category: "Breakfast",
+        emoji: "🌯",
+        time: "30 mins",
+        servings: "4",
+        desc: "Paper-thin fermented rice-lentil crepe filled with turmeric-spiced potato masala.",
+        ingredients: ["2 cups fermented dosa batter", "3 boiled potatoes mashed", "1 onion sliced", "1 tsp mustard seeds", "10 curry leaves", "1/2 tsp turmeric", "2 green chilies", "Ghee or oil"],
+        steps: ["Temper mustard seeds, curry leaves, chilies, and onions; stir in turmeric and mashed potatoes.", "Spread a ladle of dosa batter thinly on a hot greased tawa.", "Drizzle ghee around the edges until golden and crisp.", "Place potato filling in the center, fold, and serve with coconut chutney and sambar."]
+      },
+      {
+        id: 14,
+        title: "Idli & Tiffin Sambar",
+        region: "South India",
+        state: "Tamil Nadu",
+        category: "Breakfast",
+        emoji: "🍥",
+        time: "35 mins",
+        servings: "4",
+        desc: "Pillow-soft steamed rice cakes served with a fragrant lentil and drumstick vegetable stew.",
+        ingredients: ["2 cups fermented idli batter", "1/2 cup toor dal", "1 cup mixed veggies (drumstick, carrot, pumpkin)", "1 tbsp tamarind pulp", "2 tbsp sambar powder", "1 tsp mustard seeds & curry leaves", "1/4 tsp hing"],
+        steps: ["Pour idli batter into greased molds and steam for 10–12 minutes until fluffy.", "Cook toor dal until soft and mash smoothly.", "Boil vegetables in tamarind water with sambar powder and salt, then mix in cooked dal.", "Finish sambar with a mustard-curry leaf-hing tadka and serve with hot idlis."]
+      },
+      {
+        id: 15,
+        title: "Medu Vada",
+        region: "South India",
+        state: "Tamil Nadu / Andhra",
+        category: "Street Food & Snacks",
+        emoji: "🍩",
+        time: "35 mins",
+        servings: "4",
+        desc: "Golden, crunchy urad dal fritters with a fluffy interior, speckled with black pepper and curry leaves.",
+        ingredients: ["1 cup whole urad dal soaked 4 hrs", "2 green chilies chopped", "1 tsp whole black peppercorns", "10 curry leaves chopped", "1 inch ginger grated", "2 tbsp rice flour", "Oil for deep frying"],
+        steps: ["Grind soaked urad dal with minimal ice-cold water into an airy, thick batter.", "Fold in chilies, peppercorns, curry leaves, ginger, rice flour, and salt.", "Wet hands, shape into small rings with a center hole, and slide into medium-hot oil.", "Fry until crisp and golden brown; serve with coconut chutney."]
+      },
+      {
+        id: 16,
+        title: "Bisi Bele Bath",
+        region: "South India",
+        state: "Karnataka",
+        category: "Main Course",
+        emoji: "🍛",
+        time: "45 mins",
+        servings: "4",
+        desc: "Hot lentil-rice medley cooked with mixed vegetables, tamarind, and aromatic Karnataka spice powder.",
+        ingredients: ["1 cup rice", "1/2 cup toor dal", "1.5 cups mixed veggies (beans, carrot, peas)", "2 tbsp bisi bele bath powder", "2 tbsp tamarind pulp", "1 tsp jaggery", "10 cashews fried in ghee", "Mustard seeds & curry leaves"],
+        steps: ["Cook rice and toor dal together until soft and slightly mushy.", "Simmer chopped vegetables in tamarind water with salt, jaggery, and spice powder.", "Combine cooked rice-dal with the spiced vegetables and adjust consistency with hot water.", "Top with ghee-roasted cashews, mustard seeds, and curry leaves."]
+      },
+      {
+        id: 17,
+        title: "Ven Pongal",
+        region: "South India",
+        state: "Tamil Nadu",
+        category: "Breakfast",
+        emoji: "🍚",
+        time: "25 mins",
+        servings: "3",
+        desc: "Silky, comforting rice and moong dal porridge generously tempered with ghee, cashews, and black pepper.",
+        ingredients: ["1 cup raw rice", "1/2 cup yellow moong dal", "3 tbsp ghee", "1 tsp whole black pepper", "1 tsp cumin seeds", "12 cashews", "1 inch ginger chopped", "10 curry leaves"],
+        steps: ["Dry-roast moong dal lightly, then pressure cook with rice and 4.5 cups water until soft.", "Heat ghee in a small pan and fry cashews until golden.", "Add cumin, peppercorns, ginger, hing, and curry leaves until fragrant.", "Pour the sizzling ghee tadka over the warm rice-dal and mix well."]
+      },
+      {
+        id: 18,
+        title: "Kerala Avial",
+        region: "South India",
+        state: "Kerala",
+        category: "Main Course",
+        emoji: "🥥",
+        time: "30 mins",
+        servings: "4",
+        desc: "Wholesome medley of native vegetables simmered in yogurt and freshly ground coconut-cumin paste.",
+        ingredients: ["3 cups mixed veggies (drumstick, yam, carrot, ash gourd, beans)", "1 cup grated coconut", "2 green chilies", "1 tsp cumin seeds", "1/2 cup thick yogurt", "2 tbsp coconut oil", "12 curry leaves"],
+        steps: ["Cook sliced vegetables with turmeric, salt, and just enough water until tender.", "Grind coconut, green chilies, and cumin into a coarse paste.", "Stir coconut paste into the vegetables and cook 3 minutes on low heat.", "Turn off heat, fold in whisked yogurt, drizzle raw coconut oil, and scatter curry leaves."]
+      },
+      {
+        id: 19,
+        title: "Appam & Vegetable Stew",
+        region: "South India",
+        state: "Kerala",
+        category: "Breakfast",
+        emoji: "🥞",
+        time: "35 mins",
+        servings: "4",
+        desc: "Lacy fermented rice hoppers paired with a mild, fragrant coconut milk vegetable stew.",
+        ingredients: ["2 cups fermented appam batter", "1.5 cups mixed veggies (potato, carrot, peas)", "1 cup thick coconut milk", "1 cup thin coconut milk", "1 onion sliced", "Whole spices (cardamom, cloves, cinnamon)", "1 tbsp coconut oil & curry leaves"],
+        steps: ["Sauté whole spices, onions, ginger, and curry leaves in coconut oil.", "Simmer vegetables in thin coconut milk until tender, then stir in thick coconut milk gently.", "Swirl appam batter in a hot appachatti pan so edges are lacy and center stays soft.", "Cover for 2 minutes until cooked and serve warm with the stew."]
+      },
+      {
+        id: 20,
+        title: "Chitranna (Lemon Rice)",
+        region: "South India",
+        state: "Karnataka / Andhra",
+        category: "Main Course",
+        emoji: "🍋",
+        time: "15 mins",
+        servings: "3",
+        desc: "Bright turmeric-tinted rice tossed with crunchy peanuts, chana dal, curry leaves, and fresh lemon juice.",
+        ingredients: ["3 cups cooked cooled rice", "3 tbsp roasted peanuts", "1 tsp mustard seeds", "1 tbsp chana dal & urad dal", "2 green chilies slit", "1/2 tsp turmeric", "3 tbsp fresh lemon juice", "10 curry leaves"],
+        steps: ["Heat oil and crackle mustard seeds, chana dal, urad dal, and peanuts until golden.", "Add green chilies, curry leaves, hing, and turmeric.", "Turn off heat and toss in the cooled cooked rice and salt.", "Squeeze fresh lemon juice over the rice and mix gently."]
+      },
+      {
+        id: 21,
+        title: "Pesarattu (Moong Dal Dosa)",
+        region: "South India",
+        state: "Andhra Pradesh",
+        category: "Breakfast",
+        emoji: "🫓",
+        time: "25 mins",
+        servings: "4",
+        desc: "Protein-rich green moong dal crepes topped with finely chopped onions, ginger, and green chilies.",
+        ingredients: ["1 cup whole green moong dal soaked", "2 tbsp raw rice soaked", "1 inch ginger", "2 green chilies", "1 tsp cumin seeds", "1 onion finely chopped", "Oil for cooking"],
+        steps: ["Grind soaked moong dal, rice, ginger, chilies, and cumin into a smooth batter.", "Spread batter onto a hot tawa like a crepe.", "Scatter chopped onions and coriander on top, press lightly, and drizzle oil.", "Cook until crisp and serve with ginger chutney."]
+      },
+      {
+        id: 22,
+        title: "Pepper Tomato Rasam",
+        region: "South India",
+        state: "Tamil Nadu",
+        category: "Main Course",
+        emoji: "🍅",
+        time: "20 mins",
+        servings: "4",
+        desc: "Soothing, tangy tamarind-tomato broth infused with freshly crushed black pepper, cumin, and garlic.",
+        ingredients: ["2 ripe tomatoes crushed", "1 tbsp tamarind soaked in water", "1 tsp black peppercorns", "1 tsp cumin seeds", "4 cloves garlic crushed", "1/4 cup cooked toor dal", "1 tsp ghee, mustard seeds & curry leaves"],
+        steps: ["Crush peppercorns, cumin, and garlic coarsely in a mortar.", "Boil tamarind water with crushed tomatoes, turmeric, hing, and salt for 6 minutes.", "Stir in cooked dal water and the crushed pepper-garlic mix; simmer until frothy.", "Top with a ghee tadka of mustard seeds and curry leaves."]
+      },
+      {
+        id: 23,
+        title: "Hyderabadi Baghara Baingan",
+        region: "South India",
+        state: "Telangana",
+        category: "Main Course",
+        emoji: "🍆",
+        time: "40 mins",
+        servings: "4",
+        desc: "Baby eggplants simmered in a rich roasted peanut, sesame, coconut, and tamarind gravy.",
+        ingredients: ["8 small purple eggplants slit", "3 tbsp roasted peanuts", "2 tbsp sesame seeds", "2 tbsp dry coconut", "1 onion sliced", "2 tbsp tamarind pulp", "1 tsp red chili powder", "Curry leaves"],
+        steps: ["Roast peanuts, sesame, and coconut; grind into a smooth paste.", "Pan-fry slit baby eggplants until half-tender and set aside.", "Sauté onions, ginger-garlic, and chili powder, then cook the nut-coconut paste.", "Add tamarind pulp, water, and eggplants; simmer covered until oil surfaces."]
+      },
+      {
+        id: 24,
+        title: "Payasam (Semiya Kheer)",
+        region: "South India",
+        state: "Kerala / Tamil Nadu",
+        category: "Sweets & Drinks",
+        emoji: "🍮",
+        time: "25 mins",
+        servings: "4",
+        desc: "Creamy vermicelli pudding scented with green cardamom and crowned with ghee-fried cashews and raisins.",
+        ingredients: ["1 cup roasted vermicelli (semiya)", "4 cups full-fat milk", "1/2 cup sugar", "2 tbsp ghee", "12 cashews & 15 raisins", "1/2 tsp cardamom powder"],
+        steps: ["Roast cashews and raisins in ghee until golden and set aside.", "Lightly toast vermicelli in the same ghee, then pour in warm milk.", "Simmer 10–12 minutes until vermicelli is soft and milk thickens.", "Stir in sugar, cardamom powder, and the roasted nuts."]
+      },
+
+      // WEST INDIA (10)
+      {
+        id: 25,
+        title: "Mumbai Pav Bhaji",
+        region: "West India",
+        state: "Maharashtra",
+        category: "Street Food & Snacks",
+        emoji: "🍔",
+        time: "35 mins",
+        servings: "4",
+        desc: "Spiced, buttery mashed vegetable medley served with toasted soft pav buns and diced onions.",
+        ingredients: ["3 potatoes, 1 cup cauliflower, 1/2 cup peas (boiled)", "2 onions & 1 capsicum finely chopped", "3 tomatoes chopped", "2.5 tbsp pav bhaji masala", "1 tsp Kashmiri chili powder", "4 tbsp butter", "8 ladi pav buns", "Lemon wedges"],
+        steps: ["Boil and mash potatoes, cauliflower, and peas until smooth.", "Sauté onions and capsicum in butter, then cook tomatoes until soft.", "Add pav bhaji masala and chili powder, mix in mashed veggies, and simmer with water.", "Toast buttered pav buns on a hot tawa and serve alongside hot bhaji with lemon."]
+      },
+      {
+        id: 26,
+        title: "Khaman Dhokla",
+        region: "West India",
+        state: "Gujarat",
+        category: "Breakfast",
+        emoji: "🟨",
+        time: "25 mins",
+        servings: "4",
+        desc: "Spongy, steamed gram flour squares topped with a sweet-tangy mustard and green chili tempering.",
+        ingredients: ["1.5 cups besan (gram flour)", "1 tbsp semolina (rava)", "1 tsp ginger-chili paste", "1 tbsp lemon juice", "1 tsp Eno fruit salt", "1 tsp mustard seeds & sesame seeds", "2 slit green chilies & curry leaves", "2 tsp sugar in 1/3 cup water"],
+        steps: ["Whisk besan, semolina, ginger-chili paste, turmeric, lemon juice, and water into a smooth batter.", "Fold in Eno fruit salt gently until frothy, pour into a greased tin, and steam 15 minutes.", "Temper mustard seeds, sesame, chilies, and curry leaves in oil; add sugar-water and boil.", "Pour tempering evenly over cut dhokla squares and garnish with coriander."]
+      },
+      {
+        id: 27,
+        title: "Kolhapuri Misal Pav",
+        region: "West India",
+        state: "Maharashtra",
+        category: "Street Food & Snacks",
+        emoji: "🌶️",
+        time: "35 mins",
+        servings: "4",
+        desc: "Fiery sprouted moth bean curry topped with crunchy farsan, onions, and served with soft pav.",
+        ingredients: ["1.5 cups sprouted matki (moth beans)", "2 onions & 2 tomatoes", "2 tbsp goda/Kolhapuri masala", "2 tbsp dry coconut grated", "1 cup crunchy farsan/sev", "1/2 cup chopped onion & coriander", "8 pav buns"],
+        steps: ["Roast onions and dry coconut, then grind with tomatoes, ginger, and garlic into a paste.", "Cook paste in oil with Kolhapuri masala until oil separates (kat).", "Add sprouted matki and water; simmer 12 minutes.", "Serve in bowls topped generously with farsan, raw onions, lemon, and pav."]
+      },
+      {
+        id: 28,
+        title: "Dal Baati Churma",
+        region: "West India",
+        state: "Rajasthan",
+        category: "Main Course",
+        emoji: "🥣",
+        time: "60 mins",
+        servings: "4",
+        desc: "Baked whole-wheat dough balls dunked in ghee, served with five-lentil dal and sweet crushed churma.",
+        ingredients: ["2 cups coarse wheat flour", "1/2 cup ghee (plus more for dipping)", "1 cup mixed panchmel dal", "1 tsp cumin & red chili powder", "1/4 tsp hing", "3 tbsp powdered jaggery or sugar", "2 tbsp chopped almonds"],
+        steps: ["Knead coarse flour with ghee, ajwain, and salt; shape into balls and bake at 190°C for 30 mins until golden.", "Pressure cook mixed lentils, then temper with ghee, cumin, hing, ginger, and chili.", "Crush 2 baked baatis coarsely and mix with ghee, jaggery, cardamom, and almonds for churma.", "Dip remaining baatis in warm ghee and serve with hot dal and sweet churma."]
+      },
+      {
+        id: 29,
+        title: "Gatte Ki Sabzi",
+        region: "West India",
+        state: "Rajasthan",
+        category: "Main Course",
+        emoji: "🍛",
+        time: "40 mins",
+        servings: "4",
+        desc: "Steamed spiced gram flour dumplings simmered in a tangy, creamy yogurt gravy.",
+        ingredients: ["1 cup besan (gram flour)", "1 tsp ajwain & coriander seeds crushed", "1 cup whisked yogurt", "1 tsp red chili powder", "1/2 tsp turmeric", "1/4 tsp hing", "2 tbsp oil or ghee"],
+        steps: ["Knead besan with spices, 2 tbsp yogurt, and oil into a firm dough; roll into logs and boil 12 minutes.", "Slice cooled logs into bite-sized gatte discs.", "Cook whisked yogurt with turmeric, chili, and coriander powder on low heat, stirring constantly.", "Add gatte pieces and simmer 8 minutes until gravy thickens."]
+      },
+      {
+        id: 30,
+        title: "Surti Undhiyu",
+        region: "West India",
+        state: "Gujarat",
+        category: "Main Course",
+        emoji: "🥘",
+        time: "55 mins",
+        servings: "5",
+        desc: "Winter celebration casserole of baby eggplants, surti papdi, purple yam, and crispy methi muthiya.",
+        ingredients: ["200g surti papdi (flat beans)", "150g purple yam & sweet potato", "4 baby eggplants", "1/2 cup fresh coconut & coriander", "2 tbsp green garlic", "1/2 cup fenugreek leaves (methi) + besan for muthiya", "1 tsp ajwain & sesame seeds"],
+        steps: ["Shape spiced methi-besan dough into small muthiyas and fry until crisp.", "Grind coconut, coriander, green garlic, chilies, and sesame into a green masala.", "Stuff baby eggplants with masala and layer all veggies in a pot with ajwain and oil.", "Steam-cook covered on low heat until tender, then fold in muthiyas gently."]
+      },
+      {
+        id: 31,
+        title: "Vada Pav",
+        region: "West India",
+        state: "Maharashtra",
+        category: "Street Food & Snacks",
+        emoji: "🥪",
+        time: "30 mins",
+        servings: "4",
+        desc: "Mumbai's iconic spiced potato fritter tucked into a soft pav bun with fiery dry garlic chutney.",
+        ingredients: ["4 boiled potatoes mashed", "1 cup besan batter with turmeric & pinch of soda", "1 tsp mustard seeds & curry leaves", "4 cloves garlic & 2 green chilies", "4 pav buns", "3 tbsp dry garlic-peanut chutney", "Fried green chilies"],
+        steps: ["Temper mustard seeds, curry leaves, crushed garlic-chili, and turmeric; mix into mashed potatoes and shape into balls.", "Dip potato balls in smooth besan batter and deep-fry until golden.", "Slather pav buns with dry garlic chutney and place a hot batata vada inside.", "Serve with a salted fried green chili."]
+      },
+      {
+        id: 32,
+        title: "Kanda Poha",
+        region: "West India",
+        state: "Maharashtra",
+        category: "Breakfast",
+        emoji: "🍋",
+        time: "15 mins",
+        servings: "2",
+        desc: "Light flattened rice sautéed with caramelized onions, peanuts, mustard seeds, and fresh lemon.",
+        ingredients: ["2 cups thick poha (flattened rice)", "1 large onion finely chopped", "3 tbsp peanuts", "1 tsp mustard seeds", "10 curry leaves", "1/2 tsp turmeric", "2 green chilies", "Lemon juice & fresh coriander"],
+        steps: ["Rinse poha in a colander for 30 seconds and let it soften.", "Fry peanuts in oil, then crackle mustard seeds, curry leaves, and chilies.", "Sauté onions until soft, add turmeric and salt, then fold in the poha.", "Steam covered 2 minutes, finish with lemon juice, coriander, and sev."]
+      },
+      {
+        id: 33,
+        title: "Methi Thepla",
+        region: "West India",
+        state: "Gujarat",
+        category: "Breakfast",
+        emoji: "🫓",
+        time: "25 mins",
+        servings: "4",
+        desc: "Soft, travel-friendly whole-wheat flatbreads kneaded with fresh fenugreek leaves and yogurt.",
+        ingredients: ["2 cups whole wheat flour", "1 cup fresh methi (fenugreek) leaves chopped", "1/4 cup yogurt", "1 tbsp sesame seeds", "1/2 tsp turmeric & chili powder", "1 tsp ginger-chili paste", "Oil for roasting"],
+        steps: ["Combine flour, chopped methi, spices, sesame seeds, yogurt, and oil.", "Knead into a soft dough using minimal water.", "Roll thin circles and roast on a hot tawa with a brush of oil until golden-spotted.", "Serve warm with sweet mango chunda or plain curd."]
+      },
+      {
+        id: 34,
+        title: "Puran Poli",
+        region: "West India",
+        state: "Maharashtra / Goa",
+        category: "Sweets & Drinks",
+        emoji: "🍯",
+        time: "50 mins",
+        servings: "5",
+        desc: "Festive sweet flatbread stuffed with velvety jaggery-spiced chana dal, nutmeg, and cardamom.",
+        ingredients: ["1 cup chana dal cooked soft", "1 cup grated jaggery", "1/2 tsp cardamom & nutmeg powder", "1.5 cups whole wheat flour", "1/4 tsp turmeric", "Ghee for roasting"],
+        steps: ["Cook drained chana dal with jaggery over low heat until thick; mash smooth with cardamom and nutmeg.", "Knead soft wheat dough with turmeric, oil, and water; rest 20 minutes.", "Stuff a ball of sweet puran inside dough, roll gently, and roast on a tawa with ghee.", "Serve warm with extra melted ghee."]
+      },
+
+      // EAST INDIA (8)
+      {
+        id: 35,
+        title: "Litti Chokha",
+        region: "East India",
+        state: "Bihar / Jharkhand",
+        category: "Main Course",
+        emoji: "🔥",
+        time: "50 mins",
+        servings: "4",
+        desc: "Roasted wheat balls stuffed with spiced sattu (roasted gram flour), served with smoky mashed eggplant-potato chokha.",
+        ingredients: ["2 cups whole wheat flour", "1 cup sattu (roasted gram flour)", "2 tbsp pickle masala & mustard oil", "1 tsp ajwain, garlic & green chili", "1 large roasted eggplant & 2 boiled potatoes", "1 tomato roasted", "Ghee for dipping"],
+        steps: ["Mix sattu with chopped garlic, chili, ajwain, pickle masala, lemon, and mustard oil.", "Stuff into wheat dough balls and bake/roast until crisp and cracked.", "Mash roasted eggplant, tomato, and potato with mustard oil, onion, chili, and salt for chokha.", "Dip hot littis in melted ghee and serve alongside chokha."]
+      },
+      {
+        id: 36,
+        title: "Bengali Aloo Posto",
+        region: "East India",
+        state: "West Bengal",
+        category: "Main Course",
+        emoji: "🥔",
+        time: "25 mins",
+        servings: "3",
+        desc: "Comforting diced potatoes cooked in a nutty, creamy white poppy seed paste tempered with nigella seeds.",
+        ingredients: ["3 potatoes cubed", "4 tbsp white poppy seeds (posto) soaked", "3 green chilies", "1/2 tsp kalonji (nigella seeds)", "2 tbsp mustard oil", "Pinch of sugar & salt"],
+        steps: ["Grind soaked poppy seeds with green chilies into a thick smooth paste.", "Heat mustard oil until smoking lightly, crackle kalonji, and sauté potato cubes until golden.", "Stir in the poppy seed paste, salt, pinch of sugar, and 1/2 cup water.", "Simmer until potatoes are tender and coated in a thick nutty sauce."]
+      },
+      {
+        id: 37,
+        title: "Shukto",
+        region: "East India",
+        state: "West Bengal",
+        category: "Main Course",
+        emoji: "🥗",
+        time: "35 mins",
+        servings: "4",
+        desc: "Traditional Bengali bitter-sweet vegetable stew with bitter gourd, raw banana, and poppy-mustard gravy.",
+        ingredients: ["1 bitter gourd (karela) sliced", "1 raw banana, 1 sweet potato, 1 drumstick", "1/2 cup bori (lentil dumplings)", "1 tbsp poppy-mustard paste", "1 tsp panch phoron", "1/2 cup milk", "1 tsp ghee"],
+        steps: ["Fry bori and bitter gourd slices separately until crisp and set aside.", "Temper panch phoron in oil, sauté remaining vegetables lightly.", "Add poppy-mustard paste, milk, water, and salt; simmer until veggies are tender.", "Fold in fried bitter gourd, bori, and finish with a drizzle of ghee."]
+      },
+      {
+        id: 38,
+        title: "Cholar Dal & Luchi",
+        region: "East India",
+        state: "West Bengal",
+        category: "Breakfast",
+        emoji: "🫓",
+        time: "40 mins",
+        servings: "4",
+        desc: "Fragrant Bengal gram dal studded with fried coconut bits and raisins, served with puffy white luchis.",
+        ingredients: ["1 cup chana dal", "3 tbsp fresh coconut bits", "1 tbsp raisins & cashews", "1 tsp cumin, bay leaf, cinnamon, cardamom", "1 tsp sugar & ghee", "2 cups maida for luchi", "Oil for frying"],
+        steps: ["Cook chana dal until tender yet holding shape.", "Fry coconut bits, cashews, and raisins in ghee; temper whole spices and hing.", "Add dal, turmeric, salt, and sugar; simmer to a glossy consistency.", "Roll maida dough into small discs and deep-fry into puffy luchis."]
+      },
+      {
+        id: 39,
+        title: "Odisha Dalma",
+        region: "East India",
+        state: "Odisha",
+        category: "Main Course",
+        emoji: "🍲",
+        time: "35 mins",
+        servings: "4",
+        desc: "Wholesome lentil and seasonal vegetable stew finished with grated coconut and roasted cumin-chili powder.",
+        ingredients: ["1 cup toor dal", "2 cups mixed veggies (pumpkin, raw papaya, potato, brinjal)", "1/2 cup grated coconut", "1 tsp panch phoron", "2 dry red chilies", "1 tsp roasted cumin-chili powder", "1 tbsp ghee"],
+        steps: ["Boil toor dal with diced vegetables, turmeric, and salt until soft.", "Stir in grated coconut and simmer 3 minutes.", "Prepare a ghee tempering of panch phoron, dry red chilies, and hing; pour over dal.", "Sprinkle roasted cumin-chili powder and serve with steamed rice."]
+      },
+      {
+        id: 40,
+        title: "Ghugni Chaat",
+        region: "East India",
+        state: "West Bengal / Bihar",
+        category: "Street Food & Snacks",
+        emoji: "🥣",
+        time: "40 mins",
+        servings: "4",
+        desc: "Savory dried yellow pea curry spiced with bhaja masala and topped with onions, tamarind, and coriander.",
+        ingredients: ["1.5 cups dried white/yellow peas soaked", "1 potato diced", "1 onion & 1 tomato chopped", "1 tbsp ginger-garlic paste", "1 tsp roasted cumin-coriander powder", "Tamarind water", "Chopped onion, chili & sev"],
+        steps: ["Pressure cook soaked peas with diced potato and turmeric until soft.", "Sauté onion, ginger-garlic, tomato, and spices; mix in cooked peas.", "Simmer 10 minutes until rich and thick.", "Serve warm topped with raw onions, tamarind water, green chilies, and sev."]
+      },
+      {
+        id: 41,
+        title: "Sponge Rasgulla",
+        region: "East India",
+        state: "Odisha / West Bengal",
+        category: "Sweets & Drinks",
+        emoji: "⚪",
+        time: "40 mins",
+        servings: "12 pieces",
+        desc: "Soft, juicy cottage cheese balls poached in a light rose-and-cardamom sugar syrup.",
+        ingredients: ["1 liter whole milk", "2 tbsp lemon juice", "1.5 cups sugar", "5 cups water", "3 crushed cardamom pods"],
+        steps: ["Boil milk, curdle with lemon juice, strain through muslin, and rinse chhena well.", "Knead chhena for 8 minutes until completely smooth and roll into crack-free balls.", "Bring sugar, water, and cardamom to a rolling boil in a wide pot.", "Drop chhena balls in, cover, and boil 15 minutes until doubled in size; cool in syrup."]
+      },
+      {
+        id: 42,
+        title: "Chhena Poda",
+        region: "East India",
+        state: "Odisha",
+        category: "Sweets & Drinks",
+        emoji: "🍰",
+        time: "55 mins",
+        servings: "6 slices",
+        desc: "Caramelized baked cottage cheese cake flavored with cardamom, cashews, and raisins.",
+        ingredients: ["300g fresh chhena (paneer)", "1/2 cup sugar (or jaggery)", "2 tbsp semolina (sooji)", "2 tbsp ghee", "1/2 tsp cardamom powder", "2 tbsp cashews & raisins"],
+        steps: ["Knead chhena with sugar, semolina, cardamom, and 1 tbsp ghee until smooth.", "Fold in ghee-roasted cashews and raisins.", "Line a pan with banana leaf or parchment, pour mixture in, and bake at 180°C for 40 minutes.", "Cool completely so the caramelized crust sets before slicing."]
+      },
+
+      // CENTRAL INDIA (6)
+      {
+        id: 43,
+        title: "Indori Poha & Jalebi",
+        region: "Central India",
+        state: "Madhya Pradesh",
+        category: "Breakfast",
+        emoji: "🥨",
+        time: "20 mins",
+        servings: "3",
+        desc: "Steamed, subtly sweet-and-tangy poha topped with fennel, jeeravan masala, ratlami sev, and crisp jalebi.",
+        ingredients: ["2 cups thick poha", "1 tsp fennel seeds & mustard seeds", "1/2 tsp turmeric", "1 tbsp sugar", "1 tsp jeeravan masala", "1/2 cup ratlami sev & pomegranate", "4 crisp jalebis (to serve)"],
+        steps: ["Rinse poha and toss with turmeric, salt, and sugar.", "Temper mustard seeds, fennel, and curry leaves in oil, then steam poha over simmering water for 5 minutes.", "Fluff poha, squeeze fresh lemon, and top with raw onions, jeeravan, and ratlami sev.", "Serve alongside hot, crispy jalebis for the classic Indori breakfast."]
+      },
+      {
+        id: 44,
+        title: "Bhutte Ka Kees",
+        region: "Central India",
+        state: "Madhya Pradesh",
+        category: "Street Food & Snacks",
+        emoji: "🌽",
+        time: "25 mins",
+        servings: "3",
+        desc: "Indore's beloved street snack of grated sweet corn slow-cooked in milk, ghee, green chilies, and grated coconut.",
+        ingredients: ["3 cups freshly grated sweet corn", "1/2 cup milk", "2 tbsp ghee", "1 tsp mustard & cumin seeds", "1/4 tsp hing", "2 green chilies chopped", "2 tbsp grated fresh coconut & lemon"],
+        steps: ["Heat ghee and crackle mustard seeds, cumin, hing, and green chilies.", "Add grated corn and sauté on medium heat for 6–7 minutes.", "Pour in milk and turmeric; cook 8 minutes until creamy and fragrant.", "Garnish with grated coconut, fresh coriander, and lemon juice."]
+      },
+      {
+        id: 45,
+        title: "Dal Bafla",
+        region: "Central India",
+        state: "Madhya Pradesh",
+        category: "Main Course",
+        emoji: "🍲",
+        time: "55 mins",
+        servings: "4",
+        desc: "Boiled-then-baked wheat dumplings soaked in ghee, paired with spiced toor dal and green chutney.",
+        ingredients: ["2 cups wheat flour + 1/2 cup makki atta", "1/4 cup ghee + extra for dipping", "1/2 tsp ajwain & turmeric", "1 cup toor dal", "1 onion & 2 tomatoes chopped", "1 tsp cumin & red chili powder"],
+        steps: ["Knead flours with ajwain, turmeric, and ghee; shape into balls and boil in water for 12 minutes.", "Bake boiled balls at 190°C for 20 minutes until golden brown.", "Cook toor dal and temper with onion, tomato, garlic, and spices.", "Dip hot baflas in melted ghee and serve with dal and coriander chutney."]
+      },
+      {
+        id: 46,
+        title: "Sabudana Khichdi",
+        region: "Central India",
+        state: "MP / Maharashtra",
+        category: "Breakfast",
+        emoji: "🥜",
+        time: "20 mins",
+        servings: "2",
+        desc: "Fluffy, non-sticky tapioca pearls sautéed with roasted peanuts, diced potatoes, and cumin.",
+        ingredients: ["1 cup sabudana (tapioca pearls) soaked 5 hrs", "1/2 cup roasted crushed peanuts", "1 boiled potato cubed", "1 tsp cumin seeds", "2 green chilies", "10 curry leaves", "2 tbsp ghee", "Lemon & sugar"],
+        steps: ["Ensure soaked sabudana pearls are soft yet completely dry; toss with crushed peanuts, salt, and pinch of sugar.", "Heat ghee, crackle cumin, chilies, and curry leaves, and sauté potato cubes.", "Add sabudana mixture and cook covered on low heat for 4–5 minutes until pearls turn translucent.", "Finish with fresh lemon juice and coriander."]
+      },
+      {
+        id: 47,
+        title: "Chana Samosa Chaat",
+        region: "Central India",
+        state: "Madhya Pradesh",
+        category: "Street Food & Snacks",
+        emoji: "🥟",
+        time: "30 mins",
+        servings: "4",
+        desc: "Crushed crispy samosas drenched in spiced chickpea curry, yogurt, and tangy chutneys.",
+        ingredients: ["4 hot potato samosas", "1.5 cups spiced chickpea (chana) curry", "1/2 cup whisked yogurt", "3 tbsp tamarind & mint chutney", "1/2 cup chopped onion & sev"],
+        steps: ["Lightly crush hot samosas onto serving plates.", "Ladle warm spiced chana curry generously over the samosas.", "Drizzle sweet yogurt, tamarind chutney, and mint chutney.", "Top with chopped onions, chaat masala, and crispy sev."]
+      },
+      {
+        id: 48,
+        title: "Chhattisgarhi Faraa",
+        region: "Central India",
+        state: "Chhattisgarh",
+        category: "Breakfast",
+        emoji: "🥟",
+        time: "25 mins",
+        servings: "3",
+        desc: "Steamed rice flour dumplings tossed in a crunchy tempering of sesame seeds, mustard, and curry leaves.",
+        ingredients: ["1.5 cups rice flour", "1.5 cups hot water", "1 tbsp oil", "1 tsp mustard seeds", "1 tbsp white sesame seeds", "2 dry red chilies", "10 curry leaves"],
+        steps: ["Mix rice flour with hot water and salt into a smooth dough; roll into small finger-shaped cylinders.", "Steam the rice dumplings for 10–12 minutes until firm.", "Heat oil and crackle mustard seeds, sesame seeds, red chilies, and curry leaves.", "Toss steamed faraa in the tempering until lightly crisp and serve with tomato chutney."]
+      },
+
+      // NORTHEAST INDIA (6)
+      {
+        id: 49,
+        title: "Steamed Veg Momos",
+        region: "Northeast India",
+        state: "Sikkim / Arunachal",
+        category: "Street Food & Snacks",
+        emoji: "🥟",
+        time: "40 mins",
+        servings: "4",
+        desc: "Delicate pleated dumplings stuffed with crunchy cabbage, carrot, and ginger, served with fiery chili-tomato chutney.",
+        ingredients: ["1.5 cups maida for wrappers", "2 cups finely shredded cabbage", "1/2 cup grated carrot", "1/2 cup finely chopped onion & spring onion", "1 tbsp grated ginger & garlic", "1 tsp soy sauce & black pepper", "3 tomatoes & 4 dry red chilies (for chutney)"],
+        steps: ["Squeeze excess water from salted cabbage; mix with carrot, onion, ginger, garlic, soy sauce, and pepper.", "Knead stiff maida dough, roll thin circles, fill, and pleat into momos.", "Steam over boiling water for 10–12 minutes until glossy.", "Blend boiled tomatoes, soaked red chilies, and garlic for spicy chutney and serve."]
+      },
+      {
+        id: 50,
+        title: "Himalayan Veg Thukpa",
+        region: "Northeast India",
+        state: "Sikkim / Ladakh",
+        category: "Main Course",
+        emoji: "🍜",
+        time: "30 mins",
+        servings: "3",
+        desc: "Warming Himalayan noodle soup brimming with crisp vegetables, ginger-garlic broth, and fresh lime.",
+        ingredients: ["200g hakka or wheat noodles", "2 cups mixed veggies (carrot, cabbage, bell pepper, beans)", "1 tbsp ginger-garlic minced", "1 tsp soy sauce & chili sauce", "4 cups vegetable stock", "Spring onions & lime wedges"],
+        steps: ["Boil noodles until tender, drain, and set aside.", "Sauté ginger, garlic, and chopped vegetables in a pot for 3 minutes.", "Pour in vegetable stock, soy sauce, pepper, and salt; simmer 8 minutes.", "Place noodles in bowls, ladle hot broth and veggies over, and top with spring onions and lime."]
+      },
+      {
+        id: 51,
+        title: "Assamese Aloo Pitika",
+        region: "Northeast India",
+        state: "Assam",
+        category: "Main Course",
+        emoji: "🥔",
+        time: "15 mins",
+        servings: "3",
+        desc: "Soulful Assamese comfort mash of boiled potatoes, raw mustard oil, onions, green chilies, and coriander.",
+        ingredients: ["4 boiled potatoes", "1 small red onion finely chopped", "2 green chilies chopped", "1.5 tbsp raw mustard oil", "3 tbsp fresh coriander", "Salt to taste"],
+        steps: ["Mash warm boiled potatoes roughly with a fork.", "Mix in finely chopped red onion, green chilies, coriander, and salt.", "Drizzle raw pungent mustard oil and fold well.", "Serve alongside steamed rice and yellow dal."]
+      },
+      {
+        id: 52,
+        title: "Veg Eromba",
+        region: "Northeast India",
+        state: "Manipur",
+        category: "Main Course",
+        emoji: "🌶️",
+        time: "25 mins",
+        servings: "3",
+        desc: "Traditional Manipuri boiled-vegetable mash infused with aromatic bamboo shoots, roasted chili, and herbs.",
+        ingredients: ["2 boiled potatoes", "1 cup boiled yardlong beans & bamboo shoots", "2 roasted red chilies", "1 small onion sliced", "2 tbsp chopped coriander & culantro", "Salt to taste"],
+        steps: ["Boil potatoes, beans, and bamboo shoots until very soft, then drain.", "Mash roasted chilies with salt in a bowl, then mash in the boiled vegetables.", "Fold in thinly sliced onion and fresh herbs.", "Serve at room temperature with steamed rice."]
+      },
+      {
+        id: 53,
+        title: "Kelli Chana (Spiced Peas)",
+        region: "Northeast India",
+        state: "Manipur",
+        category: "Street Food & Snacks",
+        emoji: "🫘",
+        time: "30 mins",
+        servings: "3",
+        desc: "Tangy Manipuri street-style spiced black chickpeas tossed with fresh herbs, chili, and a hint of tamarind.",
+        ingredients: ["1.5 cups black chickpeas (kala chana) soaked & boiled", "1 onion finely chopped", "2 green chilies", "1 tsp chili powder", "1 tbsp tamarind water", "Fresh coriander & mint"],
+        steps: ["Sauté onions and chilies lightly in 1 tsp oil with chili powder.", "Toss in boiled kala chana and cook 5 minutes until coated.", "Remove from heat and stir in tamarind water and salt.", "Garnish generously with fresh coriander and mint."]
+      },
+      {
+        id: 54,
+        title: "Narikol Pitha",
+        region: "Northeast India",
+        state: "Assam",
+        category: "Sweets & Drinks",
+        emoji: "🥥",
+        time: "30 mins",
+        servings: "8 pieces",
+        desc: "Crisp golden rice-flour pancakes folded around a sweet caramelized coconut and jaggery filling.",
+        ingredients: ["1.5 cups finely ground sticky rice flour", "1 cup freshly grated coconut", "1/2 cup grated jaggery", "1/2 tsp cardamom powder", "Pinch of salt"],
+        steps: ["Cook grated coconut and jaggery in a pan until sticky and aromatic; add cardamom and cool.", "Spread 2 tbsp dry rice flour into a thin circle on a dry, low-heat tawa.", "Place a spoonful of coconut-jaggery filling in the center and fold into a half-moon or roll.", "Press lightly until crisp and set; cool slightly before serving."]
+      }
+    ];
+
+    // State
+    let selectedRegion = "All";
+    let selectedCategory = "All";
+    let searchQuery = "";
+    let showFavoritesOnly = false;
+    let activeRecipeId = null;
+    let checkedIngredients = new Set();
+    let favorites = [];
+
+    try {
+      const saved = localStorage.getItem("rasoi_veg_favorites");
+      if (saved) favorites = JSON.parse(saved);
+    } catch (e) {
+      favorites = [];
+    }
+
+    function saveFavorites() {
+      try {
+        localStorage.setItem("rasoi_veg_favorites", JSON.stringify(favorites));
+      } catch (e) {}
+    }
+
+    // DOM Elements
+    const totalCountLabel = document.getElementById("total-count-label");
+    const regionTabsEl = document.getElementById("region-tabs");
+    const recipeGridEl = document.getElementById("recipe-grid");
+    const emptyStateEl = document.getElementById("empty-state");
+    const resultsSummaryEl = document.getElementById("results-summary");
+    const resetFiltersBtn = document.getElementById("reset-filters-btn");
+    const emptyResetBtn = document.getElementById("empty-reset-btn");
+    const searchInput = document.getElementById("search-input");
+    const categorySelect = document.getElementById("category-select");
+    const favoritesToggleBtn = document.getElementById("favorites-toggle-btn");
+    const favCountEl = document.getElementById("fav-count");
+    const favHeartIcon = document.getElementById("fav-heart-icon");
+    const randomRecipeBtn = document.getElementById("random-recipe-btn");
+
+    // Modal Elements
+    const modalEl = document.getElementById("recipe-modal");
+    const modalBannerEl = document.getElementById("modal-banner");
+    const modalRegionStateEl = document.getElementById("modal-region-state");
+    const modalCategoryEl = document.getElementById("modal-category");
+    const modalEmojiEl = document.getElementById("modal-emoji");
+    const modalTitleEl = document.getElementById("modal-title");
+    const modalMetaEl = document.getElementById("modal-meta");
+    const modalDescEl = document.getElementById("modal-desc");
+    const modalIngredientsEl = document.getElementById("modal-ingredients");
+    const modalStepsEl = document.getElementById("modal-steps");
+    const modalFavBtn = document.getElementById("modal-fav-btn");
+    const closeModalBtn = document.getElementById("close-modal-btn");
+    const modalDoneBtn = document.getElementById("modal-done-btn");
+    const copyIngredientsBtn = document.getElementById("copy-ingredients-btn");
+    const toastEl = document.getElementById("toast");
+
+    let toastTimer = null;
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.remove("hidden");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.add("hidden"), 2200);
+    }
+
+    function getFilteredRecipes() {
+      const q = searchQuery.trim().toLowerCase();
+      return recipes.filter((r) => {
+        if (selectedRegion !== "All" && r.region !== selectedRegion) return false;
+        if (selectedCategory !== "All" && r.category !== selectedCategory) return false;
+        if (showFavoritesOnly && !favorites.includes(r.id)) return false;
+        if (q) {
+          const haystack = `${r.title} ${r.region} ${r.state} ${r.category} ${r.ingredients.join(" ")}`.toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderRegionTabs() {
+      const regions = ["All", "North India", "South India", "West India", "East India", "Central India", "Northeast India"];
+      regionTabsEl.innerHTML = "";
+
+      regions.forEach((region) => {
+        const count = region === "All"
+          ? recipes.length
+          : recipes.filter((r) => r.region === region).length;
+        const isActive = selectedRegion === region;
+        const style = REGION_STYLES[region] || REGION_STYLES["All"];
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer ${
+          isActive
+            ? `${style.pill} shadow-sm`
+            : "bg-stone-100 hover:bg-stone-200 text-stone-700"
+        }`;
+        btn.textContent = `${region} (${count})`;
+        btn.addEventListener("click", () => {
+          selectedRegion = region;
+          renderAll();
+        });
+        regionTabsEl.appendChild(btn);
+      });
+    }
+
+    function toggleFavorite(id, e) {
+      if (e) e.stopPropagation();
+      if (favorites.includes(id)) {
+        favorites = favorites.filter((f) => f !== id);
+        showToast("Removed from saved recipes");
+      } else {
+        favorites.push(id);
+        showToast("Saved to your favorites!");
+      }
+      saveFavorites();
+      renderAll();
+      if (activeRecipeId === id) {
+        updateModalFavButton(id);
+      }
+    }
+
+    function renderGrid() {
+      const filtered = getFilteredRecipes();
+      totalCountLabel.textContent = recipes.length;
+      favCountEl.textContent = favorites.length;
+      favHeartIcon.textContent = showFavoritesOnly ? "❤️" : "🤍";
+      favoritesToggleBtn.className = `inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition cursor-pointer ${
+        showFavoritesOnly
+          ? "bg-white text-rose-600 border-white shadow-sm"
+          : "bg-white/15 hover:bg-white/25 border-white/30 text-white"
+      }`;
+
+      const hasFilters = selectedRegion !== "All" || selectedCategory !== "All" || searchQuery.trim() !== "" || showFavoritesOnly;
+      resetFiltersBtn.classList.toggle("hidden", !hasFilters);
+
+      resultsSummaryEl.textContent = `Showing ${filtered.length} of ${recipes.length} pure veg recipes`;
+
+      recipeGridEl.innerHTML = "";
+      if (filtered.length === 0) {
+        emptyStateEl.classList.remove("hidden");
+        return;
+      }
+      emptyStateEl.classList.add("hidden");
+
+      filtered.forEach((recipe) => {
+        const style = REGION_STYLES[recipe.region] || REGION_STYLES["All"];
+        const isFav = favorites.includes(recipe.id);
+
+        const card = document.createElement("article");
+        card.className = `bg-white rounded-2xl border border-stone-200/80 border-t-4 ${style.accent} shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col justify-between overflow-hidden cursor-pointer group`;
+        card.tabIndex = 0;
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-label", `Open ${recipe.title} recipe`);
+
+        card.innerHTML = `
+          <div class="p-5">
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="veg-mark" title="100% Vegetarian"></span>
+                <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${style.badge}">
+                  ${recipe.region}
+                </span>
+              </div>
+              <button
+                type="button"
+                class="fav-btn w-8 h-8 rounded-full hover:bg-rose-50 flex items-center justify-center text-base transition cursor-pointer"
+                aria-label="${isFav ? "Remove from saved" : "Save recipe"}"
+              >
+                ${isFav ? "❤️" : "🤍"}
+              </button>
+            </div>
+
+            <div class="flex items-center gap-3 mb-2">
+              <span class="text-3xl shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true">${recipe.emoji}</span>
+              <div class="min-w-0">
+                <h2 class="font-display text-lg font-bold text-stone-900 leading-snug group-hover:text-orange-700 transition-colors">
+                  ${recipe.title}
+                </h2>
+                <p class="text-xs text-stone-500 font-medium">${recipe.state}</p>
+              </div>
+            </div>
+
+            <p class="text-xs sm:text-sm text-stone-600 line-clamp-2 leading-relaxed mt-2">
+              ${recipe.desc}
+            </p>
+          </div>
+
+          <div class="px-5 py-3 bg-stone-50/80 border-t border-stone-100 flex items-center justify-between text-xs text-stone-600">
+            <span class="font-medium">⏱ ${recipe.time} · ${recipe.category}</span>
+            <span class="font-semibold text-orange-700 group-hover:translate-x-0.5 transition-transform">View →</span>
+          </div>
+        `;
+
+        const favBtn = card.querySelector(".fav-btn");
+        favBtn.addEventListener("click", (e) => toggleFavorite(recipe.id, e));
+
+        card.addEventListener("click", () => openModal(recipe.id));
+        card.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openModal(recipe.id);
+          }
+        });
+
+        recipeGridEl.appendChild(card);
+      });
+    }
+
+    function updateModalFavButton(id) {
+      const isFav = favorites.includes(id);
+      modalFavBtn.innerHTML = isFav ? "❤️ Saved" : "🤍 Save Recipe";
+    }
+
+    function openModal(id) {
+      const recipe = recipes.find((r) => r.id === id);
+      if (!recipe) return;
+
+      activeRecipeId = id;
+      checkedIngredients = new Set();
+      const style = REGION_STYLES[recipe.region] || REGION_STYLES["All"];
+
+      modalBannerEl.className = `px-6 py-5 text-white relative bg-gradient-to-r ${style.banner}`;
+      modalRegionStateEl.textContent = `${recipe.region} (${recipe.state})`;
+      modalCategoryEl.textContent = recipe.category;
+      modalEmojiEl.textContent = recipe.emoji;
+      modalTitleEl.textContent = recipe.title;
+      modalMetaEl.textContent = `⏱ ${recipe.time} · Serves ${recipe.servings}`;
+      modalDescEl.textContent = recipe.desc;
+
+      renderModalIngredients(recipe);
+
+      modalStepsEl.innerHTML = "";
+      recipe.steps.forEach((step, idx) => {
+        const li = document.createElement("li");
+        li.className = "flex gap-3 text-sm text-stone-700 leading-relaxed";
+        li.innerHTML = `
+          <span class="w-6 h-6 rounded-full bg-orange-100 text-orange-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">${idx + 1}</span>
+          <span>${step}</span>
+        `;
+        modalStepsEl.appendChild(li);
+      });
+
+      updateModalFavButton(id);
+      modalEl.classList.remove("hidden");
+      modalEl.classList.add("flex");
+      document.body.style.overflow = "hidden";
+    }
+
+    function renderModalIngredients(recipe) {
+      modalIngredientsEl.innerHTML = "";
+      recipe.ingredients.forEach((item, idx) => {
+        const isChecked = checkedIngredients.has(idx);
+        const li = document.createElement("li");
+        li.className = `flex items-center gap-2.5 px-3 py-2 rounded-xl border text-sm cursor-pointer transition select-none ${
+          isChecked
+            ? "bg-emerald-50 border-emerald-200 text-stone-400 line-through"
+            : "bg-amber-50/50 border-amber-100 text-stone-700 hover:bg-amber-50"
+        }`;
+        li.innerHTML = `
+          <span class="w-4 h-4 rounded border flex items-center justify-center text-[10px] shrink-0 ${
+            isChecked ? "bg-emerald-600 border-emerald-600 text-white" : "border-stone-300 bg-white"
+          }">${isChecked ? "✓" : ""}</span>
+          <span>${item}</span>
+        `;
+        li.addEventListener("click", () => {
+          if (checkedIngredients.has(idx)) {
+            checkedIngredients.delete(idx);
+          } else {
+            checkedIngredients.add(idx);
+          }
+          renderModalIngredients(recipe);
+        });
+        modalIngredientsEl.appendChild(li);
+      });
+    }
+
+    function closeModal() {
+      activeRecipeId = null;
+      modalEl.classList.add("hidden");
+      modalEl.classList.remove("flex");
+      document.body.style.overflow = "";
+    }
+
+    function resetFilters() {
+      selectedRegion = "All";
+      selectedCategory = "All";
+      searchQuery = "";
+      showFavoritesOnly = false;
+      searchInput.value = "";
+      categorySelect.value = "All";
+      renderAll();
+    }
+
+    function renderAll() {
+      renderRegionTabs();
+      renderGrid();
+    }
+
+    // Event Listeners
+    searchInput.addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderGrid();
+    });
+
+    categorySelect.addEventListener("change", (e) => {
+      selectedCategory = e.target.value;
+      renderGrid();
+    });
+
+    favoritesToggleBtn.addEventListener("click", () => {
+      showFavoritesOnly = !showFavoritesOnly;
+      renderGrid();
+    });
+
+    randomRecipeBtn.addEventListener("click", () => {
+      const pool = getFilteredRecipes();
+      const source = pool.length > 0 ? pool : recipes;
+      const pick = source[Math.floor(Math.random() * source.length)];
+      openModal(pick.id);
+    });
+
+    resetFiltersBtn.addEventListener("click", resetFilters);
+    emptyResetBtn.addEventListener("click", resetFilters);
+    closeModalBtn.addEventListener("click", closeModal);
+    modalDoneBtn.addEventListener("click", closeModal);
+    modalFavBtn.addEventListener("click", () => {
+      if (activeRecipeId !== null) toggleFavorite(activeRecipeId);
+    });
+
+    modalEl.addEventListener("click", (e) => {
+      if (e.target === modalEl) closeModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && activeRecipeId !== null) closeModal();
+    });
+
+    copyIngredientsBtn.addEventListener("click", () => {
+      const recipe = recipes.find((r) => r.id === activeRecipeId);
+      if (!recipe) return;
+      const text = `${recipe.title} Ingredients:\n- ${recipe.ingredients.join("\n- ")}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+          () => showToast("Ingredients copied!"),
+          () => fallbackCopy(text)
+        );
+      } else {
+        fallbackCopy(text);
+      }
+    });
+
+    function fallbackCopy(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        showToast("Ingredients copied!");
+      } catch (e) {
+        showToast("Could not copy automatically");
+      }
+      document.body.removeChild(ta);
+    }
+
+    // Init
+    renderAll();
+  </script>
+</body>
+</html>
